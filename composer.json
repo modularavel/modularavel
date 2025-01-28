@@ -1,22 +1,22 @@
 {
-    "name": ":vendor_slug/:package_slug",
-    "description": ":package_description",
+    "name": "modularavel/modularavel",
+    "description": "This is my package modularavel",
     "keywords": [
-        ":vendor_name",
+        "Modularavel",
         "laravel",
-        ":package_slug"
+        "modularavel"
     ],
-    "homepage": "https://github.com/:vendor_slug/:package_slug",
+    "homepage": "https://github.com/modularavel/modularavel",
     "license": "MIT",
     "authors": [
         {
-            "name": ":author_name",
-            "email": "author@domain.com",
+            "name": "Casimiro Rocha",
+            "email": "contato@crsistemas.dev.br",
             "role": "Developer"
         }
     ],
     "require": {
-        "php": "^8.4",
+        "php": ">=8.2",
         "spatie/laravel-package-tools": "^1.16",
         "illuminate/contracts": "^10.0||^11.0"
     },
@@ -35,41 +35,162 @@
     },
     "autoload": {
         "psr-4": {
-            "VendorName\\Skeleton\\": "src/",
-            "VendorName\\Skeleton\\Database\\Factories\\": "database/factories/"
+            "Modularavel\\Modularavel\\": "src/",
+            "Modularavel\\Modularavel\\Database\\Factories\\": "database/factories/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "VendorName\\Skeleton\\Tests\\": "tests/",
-            "Workbench\\App\\": "workbench/app/"
+            "Modularavel\\Modularavel\\Tests\\": "tests/",
+            "Workbench\\App\\": "workbench/app/",
+            "Workbench\\Database\\Factories\\": "workbench/database/factories/",
+            "Workbench\\Database\\Seeders\\": "workbench/database/seeders/"
         }
     },
     "scripts": {
-        "post-autoload-dump": "@composer run prepare",
+        "post-autoload-dump": [
+            "@clear",
+            "@prepare",
+            "@composer run prepare"
+        ],
         "prepare": "@php vendor/bin/testbench package:discover --ansi",
         "analyse": "vendor/bin/phpstan analyse",
         "test": "vendor/bin/pest",
         "test-coverage": "vendor/bin/pest --coverage",
-        "format": "vendor/bin/pint"
+        "format": "vendor/bin/pint",
+        "clear": "@php vendor/bin/testbench package:purge-skeleton --ansi",
+        "build": "@php vendor/bin/testbench workbench:build --ansi",
+        "serve": [
+            "Composer\\Config::disableProcessTimeout",
+            "@build",
+            "@php vendor/bin/testbench serve --ansi",
+            "@php artisan serve --port=8080",
+            "@php artisan ray:start --port=8081"
+        ],
+        "lint": [
+            "@php vendor/bin/pint --ansi",
+            "@php vendor/bin/phpstan analyse --verbose --ansi"
+        ]
+    },
+    "scripts-descriptions": {
+        "post-autoload-dump": "Runs after the autoloader is dumped.",
+        "prepare": "Runs before the autoloader is dumped.",
+        "analyse": "Runs PHPStan to analyse the code.",
+        "test": "Runs Pest to test the code.",
+        "test-coverage": "Runs Pest with code coverage.",
+        "format": "Runs Pint to format the code.",
+        "clear": "Removes the skeleton files.",
+        "build": "Builds the workbench.",
+        "serve": "Runs the built workbench.",
+        "lint": "Runs Pint and PHPStan to lint the code."
     },
     "config": {
         "sort-packages": true,
+        "optimize-autoloader": true,
         "allow-plugins": {
             "pestphp/pest-plugin": true,
-            "phpstan/extension-installer": true
+            "phpstan/extension-installer": true,
+            "spatie/laravel-package-tools": true,
+            "nunomaduro/collision": true,
+            "larastan/larastan": true,
+            "spatie/laravel-ray": true
         }
     },
     "extra": {
         "laravel": {
             "providers": [
-                "VendorName\\Skeleton\\SkeletonServiceProvider"
+                "Modularavel\\Modularavel\\ModularavelServiceProvider"
             ],
             "aliases": {
-                "Skeleton": "VendorName\\Skeleton\\Facades\\Skeleton"
+                "Modularavel": "Modularavel\\Modularavel\\Facades\\Modularavel"
             }
+        },
+        "testbench": {
+            "aliases": {
+                "Modularavel": "Modularavel\\Modularavel\\Facades\\Modularavel"
+            },
+            "config": {
+                "database.default": "sqlite",
+                "database.connections.sqlite": {
+                    "driver": "sqlite",
+                    "database": ":memory:"
+                }
+            },
+            "migrations": {
+                "path": "workbench/database/migrations"
+            },
+            "factories": {
+                "path": "workbench/database/factories"
+            },
+            "seeders": {
+                "path": "workbench/database/seeders"
+            },
+            "publish": {
+                "config": {
+                    "src/config/modularavel.php": "config/modularavel.php"
+                },
+                "migrations": {
+                    "src/database/migrations": "workbench/database/migrations"
+                },
+                "factories": {
+                    "src/database/factories": "workbench/database/factories"
+                },
+                "seeders": {
+                    "src/database/seeders": "workbench/database/seeders"
+                }
+            },
+            "dont-discover": [
+                "laravel/laravel"
+            ],
+            "providers": [
+                "Modularavel\\Modularavel\\ModularavelServiceProvider"
+            ]
         }
     },
     "minimum-stability": "dev",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://repo.packagist.org"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/modularavel/modularavel/issues",
+        "source": "https://github.com/modularavel/modularavel"
+    },
+    "funding": [
+        {
+            "type": "github",
+            "url": "https://github.com/sponsors/casimirorocha"
+        }
+    ],
+    "support-url": "https://github.com/modularavel/modularavel/issues",
+    "funding-url": "https://github.com/sponsors/casimirorocha",
+    "archive-url": "https://github.com/modularavel/modularavel/archive/refs/heads/main.zip",
+    "composer-lock": "https://raw.githubusercontent.com/modularavel/modularavel/main/composer.lock",
+    "composer-json": "https://raw.githubusercontent.com/modularavel/modularavel/main/composer.json",
+    "composer-path": "https://github.com/modularavel/modularavel/blob/main/composer.json",
+    "composer-lock-path": "https://github.com/modularavel/modularavel/blob/main/composer.lock",
+    "github-path": "https://github.com/modularavel/modularavel",
+    "github-issues-path": "https://github.com/modularavel/modularavel/issues",
+    "github-releases-path": "https://github.com/modularavel/modularavel/releases",
+    "github-wiki-path": "https://github.com/modularavel/modularavel/wiki",
+    "github-actions-path": "https://github.com/modularavel/modularavel/actions",
+    "github-actions-badge": "https://github.com/modularavel/modularavel/actions/workflows/main.yml/badge.svg",
+    "github-license-path": "https://github.com/modularavel/modularavel/blob/main/LICENSE",
+    "github-code-size-path": "https://github.com/modularavel/modularavel/blob/main/src",
+    "dist": {
+        "type": "zip",
+        "url": "https://github.com/modularavel/modularavel/archive/refs/heads/main.zip"
+    },
+    "source": {
+        "type": "git",
+        "url": "https://github.com/modularavel/modularavel.git",
+        "reference": "main"
+    },
+    "dist-url": "https://api.github.com/repos/modularavel/modularavel/zipball/main",
+    "type": "library",
+    "time": "2022-03-15T16:22:22+00:00",
+    "version": "1.0.0"
 }
