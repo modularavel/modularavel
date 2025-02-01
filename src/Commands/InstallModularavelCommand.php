@@ -5,21 +5,15 @@ namespace Modularavel\Modularavel\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Console\Prohibitable;
 use Illuminate\Filesystem\Filesystem;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Composer;
 use Illuminate\Support\Str;
 use JsonException;
 use RuntimeException;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Process\PhpExecutableFinder;
 use Symfony\Component\Process\Process;
 
 use function Illuminate\Support\php_binary;
-use function Laravel\Prompts\confirm;
-use function Laravel\Prompts\multiselect;
-use function Laravel\Prompts\select;
 
 class InstallModularavelCommand extends Command
 {
@@ -107,13 +101,46 @@ class InstallModularavelCommand extends Command
 
         $this->showTerminalAppName();
 
-        $this->modifyTailwindConfig();
+        $this->askForModulesFolderName();
 
-        $this->choiceStarterKit();
+        $this->installModulePackages();
 
-        // $this->installModulePackages();
+        $this->installPredis();
 
-        // $this->installLaravelDebugBar();
+        $this->installDebugBar();
+
+        $this->installRequiredNodePackages();
+
+        /*$this->runCommands([
+            $this->phpBinary().' '.base_path('artisan').' module:publish-config',
+            $this->phpBinary().' '.base_path('artisan').' module:publish-migration',
+        ]);
+
+        $this->info('Installing and running migrations...');
+
+        $this->runCommands([
+            $this->phpBinary().' '.base_path('artisan').' migrate',
+        ]);
+
+        $this->info('Installing and running seeders...');
+
+        $this->runCommands([
+            $this->phpBinary().' '.base_path('artisan').' db:seed',
+        ]);
+
+        if ($this->option('pest')) {
+            $this->info('Installing Pest as a development dependency...');
+
+            if (! $this->requireComposerPackages(['pestphp/pest:^3.0'], true)) {
+                return 1;
+            }
+
+            $this->info('Installing and running Pest tests...');
+
+            $this->runCommands([
+                $this->phpBinary().' '.base_path('vendor/bin/pest'),
+            ]);
+        }*/
 
         $this->info('Modularavel installation complete!');
 
@@ -137,108 +164,12 @@ class InstallModularavelCommand extends Command
     }
 
     /**
-     * Modifies the tailwind.config.js file to include the Modules folder.
-     */
-    protected function modifyTailwindConfig(): int
-    {
-        $file = $this->getTailwindConfig();
-
-        $extensions = '{blade.php,js,ts,cjs,mjs,jsx,tsx,vue}';
-
-        $this->replaceInFile("'./resources/views/**/*.blade.php',", "'./resources/**/*.$extensions',\n        './Modules/*/resources/**/*.$extensions',", $file);
-
-        $this->info('Tailwind config file modified successfully.');
-
-        return self::SUCCESS;
-    }
-
-    /**
-     * Returns the path to the tailwind.config.js file.
-     */
-    private function getTailwindConfig(): string
-    {
-        $extensions = ['js', 'ts', 'cjs', 'mjs'];
-
-        $file = null;
-
-        foreach ($extensions as $extension) {
-            if (file_exists($tw = base_path('tailwind.config.'.$extension))) {
-                $file = $tw;
-                break;
-            }
-        }
-
-        return $file;
-    }
-
-    /**
      * Replace a given string within a given file.
      */
-    protected function replaceInFile(string $search, string $replace, string $path): void
+    protected function replaceInFile(array|string $search, array|string $replace, string $path): void
     {
         file_put_contents($path, str_replace($search, $replace, file_get_contents($path)));
     }
-
-    /**
-     *  Choose the starter kit to install
-     */
-    protected function choiceStarterKit(): void
-    {
-        $choice = $this->choice('Select a starter kit', [
-            'Unpoly',
-            'Livewire',
-        ], 1);
-
-        match ($choice) {
-            'Unpoly' => $this->installUnpolyStack(),
-            'Livewire' => $this->installBreezeStack(),
-        };
-    }
-
-    private function installUnpolyStack() {}
-
-    protected function installBreezeStack(): void
-    {
-        $this->choice('Select a livewire option:', [
-            'Livewire volt',
-            'Livewire component class',
-        ], 0);
-
-        $selectedOptionCSSFramework = $this->selectedOptionCSSFramework();
-
-        match ($selectedOptionCSSFramework) {
-            'TailwindCSS' => $this->installTailwindCSS(),
-            'Bootstrap5' => $this->installBootstrap5(),
-            'Quasar Framework' => $this->installQuasarFramework(),
-        };
-
-        $this->askForModulesFolderName();
-
-        $this->newLine();
-
-        $this->info('Installing Breeze Stack... '.$selectedOptionCSSFramework);
-    }
-
-    protected function selectedOptionCSSFramework(): array|string
-    {
-        return $this->choice('Select your preferred CSS framework', [
-            'TailwindCSS',
-            'Bootstrap5',
-            'Quasar Framework',
-        ], 0);
-    }
-
-    private function installTailwindCSS() {}
-
-    private function installBootstrap5()
-    {
-        $this->choice('Select a Bootstrap option:', [
-            'Bootstrap 5 with TailwindCSS',
-            'Bootstrap 5 with Bulma',
-        ], 0);
-    }
-
-    private function installQuasarFramework() {}
 
     protected function askForModulesFolderName(): string
     {
@@ -259,6 +190,18 @@ class InstallModularavelCommand extends Command
 
         // Add the Modules folder to the composer.json file
         $this->modifyComposerJson([
+            /*'scripts' => [
+                'post-update-cmd' => [
+                    '@php artisan vendor:publish --tag=livewire:assets --ansi --force',
+                ],
+            ],*/
+            'config' => [
+                'allow-plugins' => [
+                    'nwidart/laravel-modules' => true,
+                    'joshbrw/laravel-module-installer' => true,
+                    'wikimedia/composer-merge-plugin' => true,
+                ],
+            ],
             'extra' => [
                 'merge-plugin' => [
                     'include' => [
@@ -279,70 +222,10 @@ class InstallModularavelCommand extends Command
     protected function modifyComposerJson(array $value): void
     {
         $this->composer->modify(function (array $content) use ($value) {
-            return array_merge($content, $value);
+            return array_replace_recursive($content, $value);
         });
 
         $this->info('composer.json file modified successfully.');
-
-        $this->line();
-
-        $this->warn('Running composer dump-autoload...');
-
-        $this->composer->dumpAutoloads();
-    }
-
-    /**
-     * Install the given middleware names into the application.
-     */
-    protected function installMiddleware(array|string $names, string $group = 'web', string $modifier = 'append'): void
-    {
-        $bootstrapApp = file_get_contents(base_path('bootstrap/app.php'));
-
-        $names = collect(Arr::wrap($names))
-            ->filter(fn ($name) => ! Str::contains($bootstrapApp, $name))
-            ->whenNotEmpty(function ($names) use ($bootstrapApp, $group, $modifier) {
-                $names = $names->map(fn ($name) => "$name")
-                    ->implode(','.PHP_EOL.'            ');
-
-                $bootstrapApp = str_replace(
-                    '->withMiddleware(function (Middleware $middleware) {',
-                    '->withMiddleware(function (Middleware $middleware) {'
-                    .PHP_EOL."        \$middleware->$group($modifier: ["
-                    .PHP_EOL."            $names,"
-                    .PHP_EOL.'        ]);'
-                    .PHP_EOL,
-                    $bootstrapApp,
-                );
-
-                file_put_contents(base_path('bootstrap/app.php'), $bootstrapApp);
-            });
-    }
-
-    /**
-     * Install the given middleware aliases into the application.
-     */
-    protected function installMiddlewareAliases(array $aliases): void
-    {
-        $bootstrapApp = file_get_contents(base_path('bootstrap/app.php'));
-
-        $aliases = collect($aliases)
-            ->filter(fn ($alias) => ! Str::contains($bootstrapApp, $alias))
-            ->whenNotEmpty(function ($aliases) use ($bootstrapApp) {
-                $aliases = $aliases->map(fn ($name, $alias) => "'$alias' => $name")
-                    ->implode(','.PHP_EOL.'            ');
-
-                $bootstrapApp = str_replace(
-                    '->withMiddleware(function (Middleware $middleware) {',
-                    '->withMiddleware(function (Middleware $middleware) {'
-                    .PHP_EOL.'        $middleware->alias(['
-                    .PHP_EOL."            $aliases,"
-                    .PHP_EOL.'        ]);'
-                    .PHP_EOL,
-                    $bootstrapApp,
-                );
-
-                file_put_contents(base_path('bootstrap/app.php'), $bootstrapApp);
-            });
     }
 
     /**
@@ -411,94 +294,53 @@ class InstallModularavelCommand extends Command
     }
 
     /**
-     * Prompt for missing input arguments using the returned questions.
-     *
-     * @return array<string, callable>
-     */
-    protected function promptForMissingArgumentsUsing(): array
-    {
-        return [
-            'stack' => fn () => select(
-                label: 'Which Breeze stack would you like to install?',
-                options: [
-                    'blade' => 'Blade with Alpine',
-                    'livewire' => 'Livewire (Volt Class API) with Alpine',
-                    'livewire-functional' => 'Livewire (Volt Functional API) with Alpine',
-                    'react' => 'React with Inertia',
-                    'vue' => 'Vue with Inertia',
-                    'api' => 'API only',
-                ],
-                scroll: 6,
-            ),
-        ];
-    }
-
-    /**
-     * Interact further with the user if they were prompted for missing
-     * arguments.
-     */
-    protected function afterPromptingForMissingArguments(InputInterface $input, OutputInterface $output): void
-    {
-        $stack = $input->getArgument('stack');
-
-        if (in_array($stack, ['react', 'vue'])) {
-            collect(multiselect(
-                label: 'Would you like any optional features?',
-                options: [
-                    'dark' => 'Dark mode',
-                    'ssr' => 'Inertia SSR',
-                    'typescript' => 'TypeScript',
-                    'eslint' => 'ESLint with Prettier',
-                ],
-                hint: 'Use the space bar to select options.'
-            ))->each(fn ($option) => $input->setOption($option, true));
-        } elseif (in_array($stack, [
-            'blade',
-            'livewire',
-            'livewire-functional',
-        ])) {
-            $input->setOption('dark', confirm(
-                label: 'Would you like dark mode support?',
-                default: false
-            ));
-        }
-
-        $input->setOption('pest', select(
-            label: 'Which testing framework do you prefer?',
-            options: ['Pest', 'PHPUnit'],
-            default: 'Pest',
-        ) === 'Pest');
-    }
-
-    /**
-     * Determine if the user is using Pest.
-     */
-    protected function isUsingPest(): bool
-    {
-        return class_exists(\Pest\TestSuite::class);
-    }
-
-    /**
      * Install the required packages for the Modules feature.
      */
     protected function installModulePackages(): void
     {
         $this->requireComposerPackages([
+            'livewire/livewire',
+            'livewire/volt',
             'nwidart/laravel-modules',
-            'joshbrw/laravel-module-installer',
             'mhmiton/laravel-modules-livewire',
+            'joshbrw/laravel-module-installer',
         ]);
 
         $this->runCommands([
+            'php artisan volt:install',
+            'php artisan livewire:publish --config',
             'php artisan vendor:publish --provider="Nwidart\\Modules\\LaravelModulesServiceProvider" --force',
             'php artisan vendor:publish --tag=modules-livewire-config --force',
         ]);
+    }
 
-        $file = base_path('tailwind.config.js');
+    public function installPredis()
+    {
+        $success = $this->requireComposerPackages([
+            'predis/predis',
+        ]);
 
-        $this->replaceInFile("'./resources/views/**/*.blade.php'", '
-        `./resources/**/*.${blade.php,vue,js,jsx,ts,tsx,mjs,cjs}`,
-        ./Modules/*/resources/**/*.${blade.php,vue,js,jsx,ts,tsx,mjs,cjs}`', $file);
+        if ($success) {
+
+            $this->info('Predis installed successfully.');
+
+            // Replace a cache driver with an array driver
+            $this->replaceInFile(
+                [
+                    'REDIS_CLIENT=phpredis',
+                    'CACHE_STORE=database',
+                    'CACHE_PREFIX=',
+                ],
+                [
+                    'REDIS_CLIENT=predis',
+                    'CACHE_STORE=redis',
+                    'CACHE_PREFIX="${APP_NAME}:cache:"',
+                ],
+                base_path('.env')
+            );
+        } else {
+            $this->error('Predis installation failed.');
+        }
     }
 
     /**
@@ -545,13 +387,42 @@ class InstallModularavelCommand extends Command
         });
     }
 
-    /**
-     * Install the Laravel Debug Bar package.
-     */
-    protected function installLaravelDebugBar(): void
+    private function installDebugBar(): int
     {
-        $this->requireComposerPackages([
-            'barryvdh/laravel-debugbar',
-        ], true);
+        $this->info('Installing barryvdh/laravel-debugbar as a development dependency...');
+
+        if (! $this->requireComposerPackages(['barryvdh/laravel-debugbar:^3.6'], true)) {
+            return 1;
+        }
+
+        // TODO
+        file_put_contents('config/debugbar.php', str_replace(
+            ['enabled' => true],
+            ['enabled' => false],
+            file_get_contents('config/debugbar.php')));
+
+        $this->info('Debugbar installed successfully.');
+
+        return 0;
+    }
+
+    protected function installRequiredNodePackages(): void
+    {
+        // NPM Packages...
+        $this->updateNodePackages(function ($packages) {
+            return [
+                'sass' => '^1.43.4',
+                'postcss' => '^8.4.31',
+                'tailwindcss' => '^3.2.1',
+                'bulma' => '^1.0.3',
+            ] + $packages;
+        });
+
+        $this->warn('Installing node dependencies...');
+
+        $this->runCommands([
+            'npm install --legacy-peer-deps',
+            'npm run build',
+        ]);
     }
 }
