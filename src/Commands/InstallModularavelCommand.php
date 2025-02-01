@@ -63,9 +63,6 @@ class InstallModularavelCommand extends Command
 
     /**
      * Update the scripts in the "package.json" file.
-     *
-     * @param callable $callback
-     * @return void
      */
     protected static function updateNodeScripts(callable $callback): void
     {
@@ -87,8 +84,6 @@ class InstallModularavelCommand extends Command
 
     /**
      * Delete the "node_modules" directory and remove the associated lock files.
-     *
-     * @return void
      */
     protected static function flushNodeModules(): void
     {
@@ -105,8 +100,6 @@ class InstallModularavelCommand extends Command
 
     /**
      * Install the given package using Composer.
-     *
-     * @return int
      */
     public function handle(): int
     {
@@ -116,7 +109,7 @@ class InstallModularavelCommand extends Command
 
         $this->modifyTailwindConfig();
 
-        // $this->choiceStarterKit();
+        $this->choiceStarterKit();
 
         // $this->installModulePackages();
 
@@ -145,26 +138,22 @@ class InstallModularavelCommand extends Command
 
     /**
      * Modifies the tailwind.config.js file to include the Modules folder.
-     *
-     * @return int
      */
     protected function modifyTailwindConfig(): int
     {
         $file = $this->getTailwindConfig();
 
-        $this->info('Tailwind config file modified successfully.');
-
-        $extensions = '${blade.php,js,ts,cjs,mjs,jsx,tsx,vue}';
+        $extensions = '{blade.php,js,ts,cjs,mjs,jsx,tsx,vue}';
 
         $this->replaceInFile("'./resources/views/**/*.blade.php',", "'./resources/**/*.$extensions',\n        './Modules/*/resources/**/*.$extensions',", $file);
+
+        $this->info('Tailwind config file modified successfully.');
 
         return self::SUCCESS;
     }
 
     /**
      * Returns the path to the tailwind.config.js file.
-     *
-     * @return string
      */
     private function getTailwindConfig(): string
     {
@@ -184,11 +173,6 @@ class InstallModularavelCommand extends Command
 
     /**
      * Replace a given string within a given file.
-     *
-     * @param string $search
-     * @param string $replace
-     * @param string $path
-     * @return void
      */
     protected function replaceInFile(string $search, string $replace, string $path): void
     {
@@ -197,9 +181,6 @@ class InstallModularavelCommand extends Command
 
     /**
      *  Choose the starter kit to install
-     *
-     * @throws JsonException
-     * @return void
      */
     protected function choiceStarterKit(): void
     {
@@ -216,10 +197,6 @@ class InstallModularavelCommand extends Command
 
     private function installUnpolyStack() {}
 
-    /**
-     * @throws JsonException
-     * @return void
-     */
     protected function installBreezeStack(): void
     {
         $this->choice('Select a livewire option:', [
@@ -253,14 +230,16 @@ class InstallModularavelCommand extends Command
 
     private function installTailwindCSS() {}
 
-    private function installBootstrap5() {}
+    private function installBootstrap5()
+    {
+        $this->choice('Select a Bootstrap option:', [
+            'Bootstrap 5 with TailwindCSS',
+            'Bootstrap 5 with Bulma',
+        ], 0);
+    }
 
     private function installQuasarFramework() {}
 
-    /**
-     * @throws JsonException
-     * @return string
-     */
     protected function askForModulesFolderName(): string
     {
         // Ask for the Modules folder name and create it if it doesn't exist
@@ -295,24 +274,25 @@ class InstallModularavelCommand extends Command
     /**
      * Modify the "composer.json" file.
      *
-     * @param array $value
      * @throws JsonException
-     * @return void
      */
     protected function modifyComposerJson(array $value): void
     {
         $this->composer->modify(function (array $content) use ($value) {
             return array_merge($content, $value);
         });
+
+        $this->info('composer.json file modified successfully.');
+
+        $this->line();
+
+        $this->warn('Running composer dump-autoload...');
+
+        $this->composer->dumpAutoloads();
     }
 
     /**
      * Install the given middleware names into the application.
-     *
-     * @param array|string $names
-     * @param string $group
-     * @param string $modifier
-     * @return void
      */
     protected function installMiddleware(array|string $names, string $group = 'web', string $modifier = 'append'): void
     {
