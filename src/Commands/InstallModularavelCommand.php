@@ -6,6 +6,7 @@ use Illuminate\Console\Command;
 use Illuminate\Console\Prohibitable;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Composer;
+use Illuminate\Support\HigherOrderTapProxy;
 use Illuminate\Support\Str;
 use JsonException;
 use RuntimeException;
@@ -83,7 +84,6 @@ class InstallModularavelCommand extends Command
     {
         tap(new Filesystem, function ($files) {
             $files->deleteDirectory(base_path('node_modules'));
-
             $files->delete(base_path('pnpm-lock.yaml'));
             $files->delete(base_path('yarn.lock'));
             $files->delete(base_path('bun.lockb'));
@@ -99,50 +99,46 @@ class InstallModularavelCommand extends Command
     {
         $this->initComposer();
 
+        $this->copyStubsToBasePath();
+
         $this->showTerminalAppName();
 
         $this->askForModulesFolderName();
 
         $this->installModulePackages();
 
+        $this->removeDarkClasses();
+
         $this->installPredis();
 
         $this->installDebugBar();
 
+        // $this->flushNodeModules();
+
+        $this->runCommands([
+            'php artisan volt:install',
+            'php artisan livewire:publish --config --force',
+            /*'php artisan vendor:publish --provider="Nwidart\\Modules\\LaravelModulesServiceProvider"',
+            'php artisan vendor:publish --tag=modules-livewire-config',*/
+        ]);
+
         $this->installRequiredNodePackages();
 
-        /*$this->runCommands([
-            $this->phpBinary().' '.base_path('artisan').' module:publish-config',
-            $this->phpBinary().' '.base_path('artisan').' module:publish-migration',
+        $this->modifyComposerJson([
+            'scripts' => [
+                'post-update-cmd' => [
+                    '@php artisan vendor:publish --tag=livewire:assets --ansi --force',
+                ],
+            ],
         ]);
 
-        $this->info('Installing and running migrations...');
+        $this->info('Running artisan optimize:clear command...');
 
         $this->runCommands([
-            $this->phpBinary().' '.base_path('artisan').' migrate',
+            $this->phpBinary().' artisan optimize:clear',
         ]);
 
-        $this->info('Installing and running seeders...');
-
-        $this->runCommands([
-            $this->phpBinary().' '.base_path('artisan').' db:seed',
-        ]);
-
-        if ($this->option('pest')) {
-            $this->info('Installing Pest as a development dependency...');
-
-            if (! $this->requireComposerPackages(['pestphp/pest:^3.0'], true)) {
-                return 1;
-            }
-
-            $this->info('Installing and running Pest tests...');
-
-            $this->runCommands([
-                $this->phpBinary().' '.base_path('vendor/bin/pest'),
-            ]);
-        }*/
-
-        $this->info('Modularavel installation complete!');
+        $this->warn('Modularavel installation complete!');
 
         return self::SUCCESS;
     }
@@ -190,11 +186,6 @@ class InstallModularavelCommand extends Command
 
         // Add the Modules folder to the composer.json file
         $this->modifyComposerJson([
-            /*'scripts' => [
-                'post-update-cmd' => [
-                    '@php artisan vendor:publish --tag=livewire:assets --ansi --force',
-                ],
-            ],*/
             'config' => [
                 'allow-plugins' => [
                     'nwidart/laravel-modules' => true,
@@ -288,6 +279,12 @@ class InstallModularavelCommand extends Command
      */
     protected function removeDarkClasses(Finder $finder): void
     {
+        $darkModeConfirm = $this->confirm('Remove Tailwind dark mode?');
+
+        if (! $darkModeConfirm) {
+            return; // Do nothing
+        }
+
         foreach ($finder as $file) {
             file_put_contents($file->getPathname(), preg_replace('/\sdark:[^\s"\']+/', '', $file->getContents()));
         }
@@ -305,20 +302,27 @@ class InstallModularavelCommand extends Command
             'mhmiton/laravel-modules-livewire',
             'joshbrw/laravel-module-installer',
         ]);
-
-        $this->runCommands([
-            'php artisan volt:install',
-            'php artisan livewire:publish --config',
-            'php artisan vendor:publish --provider="Nwidart\\Modules\\LaravelModulesServiceProvider" --force',
-            'php artisan vendor:publish --tag=modules-livewire-config --force',
-        ]);
     }
 
     public function installPredis()
     {
+        $choice = $this->confirm('Do you want to install predis/predis to use as Redis client?', true);
+
+        if (! $choice) {
+            return; // Do nothing
+        }
+
+        if ($this->hasComposerPackage('predis/predis')) {
+            $this->output->writeln('<fg=green>Predis already installed.</>');
+
+            return;
+        }
+
+        $this->info('Installing predis/predis as a development dependency...');
+
         $success = $this->requireComposerPackages([
             'predis/predis',
-        ]);
+        ], true);
 
         if ($success) {
 
@@ -334,7 +338,7 @@ class InstallModularavelCommand extends Command
                 [
                     'REDIS_CLIENT=predis',
                     'CACHE_STORE=redis',
-                    'CACHE_PREFIX="${APP_NAME}:cache:"',
+                    'CACHE_PREFIX=cache',
                 ],
                 base_path('.env')
             );
@@ -389,17 +393,29 @@ class InstallModularavelCommand extends Command
 
     private function installDebugBar(): int
     {
+        $confirmInstallDebugBar = $this->confirm('Do you want to install Debugbar?', true);
+
+        if (! $confirmInstallDebugBar) {
+            return 0;
+        }
+
+        if ($this->hasComposerPackage('barryvdh/laravel-debugbar')) {
+            $this->output->writeln('<fg=green>Debugbar already installed.</>');
+
+            return 0;
+        }
+
         $this->info('Installing barryvdh/laravel-debugbar as a development dependency...');
 
         if (! $this->requireComposerPackages(['barryvdh/laravel-debugbar:^3.6'], true)) {
             return 1;
         }
 
-        // TODO
-        file_put_contents('config/debugbar.php', str_replace(
-            ['enabled' => true],
-            ['enabled' => false],
-            file_get_contents('config/debugbar.php')));
+        $this->info('Publishing Debugbar configuration...');
+
+        $this->runCommands([
+            'php artisan vendor:publish --provider="Barryvdh\\Debugbar\\ServiceProvider"',
+        ]);
 
         $this->info('Debugbar installed successfully.');
 
@@ -408,21 +424,76 @@ class InstallModularavelCommand extends Command
 
     protected function installRequiredNodePackages(): void
     {
-        // NPM Packages...
-        $this->updateNodePackages(function ($packages) {
-            return [
-                'sass' => '^1.43.4',
-                'postcss' => '^8.4.31',
-                'tailwindcss' => '^3.2.1',
-                'bulma' => '^1.0.3',
-            ] + $packages;
+        $choice = $this->choice('Which package manager do you want to use?', ['NPM', 'Yarn', 'Pnpm'], 0);
+
+        $installPackages = [
+            'postcss' => '^8.4.31',
+            'tailwindcss' => '^3.2.1',
+            'bulma' => '^1.0.3',
+        ];
+
+        $this->updateNodePackages(function ($packages) use ($installPackages) {
+            return $installPackages + $packages;
         });
 
-        $this->warn('Installing node dependencies...');
+        if ($choice === 'NPM') {
+            $this->installNodePackages();
+        } elseif ($choice === 'Yarn') {
+            $this->installYarnPackages();
+        } elseif ($choice === 'Pnpm') {
+            $this->installPnpmPackages();
+        } else {
+            $this->error('Please run "npm run dev" or "yarn run dev" to compile your assets.');
+
+            $this->installRequiredNodePackages();
+        }
+    }
+
+    protected function installYarnPackages(): void
+    {
+        $this->info('Installing node dependencies with Yarn...');
+
+        $this->runCommands([
+            'yarn',
+            'yarn run build',
+        ]);
+    }
+
+    protected function installPnpmPackages(): void
+    {
+        $this->info('Installing node dependencies with PNPM...');
+
+        $this->runCommands([
+            'pnpm install',
+            'pnpm run build',
+        ]);
+    }
+
+    protected function installNodePackages(): void
+    {
+        $this->info('Installing node dependencies with NPM...');
 
         $this->runCommands([
             'npm install --legacy-peer-deps',
             'npm run build',
         ]);
+    }
+
+    protected function copyStubsToBasePath(): void
+    {
+        tap(new Filesystem, function (Filesystem|HigherOrderTapProxy $files) {
+            $files->ensureDirectoryExists(base_path('stubs'), 0755, true);
+            $files->copyDirectory(__DIR__.'/../../stubs', base_path('stubs'));
+
+            $files->delete([
+                base_path('vite.config.js'),
+                base_path('tailwind.config.js'),
+                base_path('vite-module-loader.js'),
+            ]);
+
+            // $files->deleteDirectory(resource_path('views'));
+            $files->copyDirectory(base_path('stubs/app-views'), base_path());
+            $files->copyDirectory(base_path('stubs/root'), base_path());
+        });
     }
 }
