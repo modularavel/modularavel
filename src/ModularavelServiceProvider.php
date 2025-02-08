@@ -1,8 +1,8 @@
 <?php
 
-namespace Modularavel\Modularavel;
+namespace Modularavel\Starter;
 
-use Modularavel\Modularavel\Commands\InstallModularavelCommand;
+use Modularavel\Starter\Commands\InstallModularavelCommand;
 use Spatie\LaravelPackageTools\Commands\InstallCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;

@@ -165,32 +165,6 @@
             "url": "https://github.com/sponsors/casimirorocha"
         }
     ],
-    "support-url": "https://github.com/modularavel/starter/issues",
-    "funding-url": "https://github.com/sponsors/casimirorocha",
-    "archive-url": "https://github.com/modularavel/starter/archive/refs/heads/main.zip",
-    "composer-lock": "https://raw.githubusercontent.com/modularavel/starter/main/composer.lock",
-    "composer-json": "https://raw.githubusercontent.com/modularavel/starter/main/composer.json",
-    "composer-path": "https://github.com/modularavel/starter/blob/main/composer.json",
-    "composer-lock-path": "https://github.com/modularavel/starter/blob/main/composer.lock",
-    "github-path": "https://github.com/modularavel/starter",
-    "github-issues-path": "https://github.com/modularavel/starter/issues",
-    "github-releases-path": "https://github.com/modularavel/starter/releases",
-    "github-wiki-path": "https://github.com/modularavel/starter/wiki",
-    "github-actions-path": "https://github.com/modularavel/starter/actions",
-    "github-actions-badge": "https://github.com/modularavel/starter/actions/workflows/main.yml/badge.svg",
-    "github-license-path": "https://github.com/modularavel/starter/blob/main/LICENSE",
-    "github-code-size-path": "https://github.com/modularavel/starter/blob/main/src",
-    "dist": {
-        "type": "zip",
-        "url": "https://github.com/modularavel/starter/archive/refs/heads/main.zip"
-    },
-    "source": {
-        "type": "git",
-        "url": "https://github.com/modularavel/starter.git",
-        "reference": "main"
-    },
-    "dist-url": "https://api.github.com/repos/modularavel/starter/zipball/main",
     "type": "library",
-    "time": "2022-03-15T16:22:22+00:00",
     "version": "1.0.0"
 }

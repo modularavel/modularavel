@@ -1,6 +1,6 @@
 <?php
 
-namespace Modularavel\Modularavel\Commands;
+namespace Modularavel\Starter\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Console\Prohibitable;
@@ -107,7 +107,7 @@ class InstallModularavelCommand extends Command
 
         $this->installModulePackages();
 
-        $this->removeDarkClasses();
+        // $this->removeDarkClasses();
 
         $this->installPredis();
 
@@ -295,13 +295,21 @@ class InstallModularavelCommand extends Command
      */
     protected function installModulePackages(): void
     {
-        $this->requireComposerPackages([
+        $packages = [
             'livewire/livewire',
             'livewire/volt',
             'nwidart/laravel-modules',
             'mhmiton/laravel-modules-livewire',
             'joshbrw/laravel-module-installer',
-        ]);
+        ];
+
+        foreach ($packages as $package) {
+            if (! $this->hasComposerPackage($package)) {
+                $this->info("Installing $package as a development dependency...");
+
+                $this->requireComposerPackages([$package], true);
+            }
+        }
     }
 
     public function installPredis()
