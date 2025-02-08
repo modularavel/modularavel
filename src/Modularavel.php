@@ -1,5 +1,5 @@
 <?php
 
-namespace Modularavel\Starter;
+namespace Modularavel\Modularavel;
 
 class Modularavel {}

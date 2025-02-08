@@ -1,12 +1,12 @@
 {
-    "name": "modularavel/starter",
+    "name": "modularavel/modularavel",
     "description": "This is my package modularavel",
     "keywords": [
         "Modularavel",
         "laravel",
-        "modularavel"
+        "modu laravel"
     ],
-    "homepage": "https://github.com/modularavel/starter",
+    "homepage": "https://github.com/modularavel/modularavel",
     "license": "MIT",
     "authors": [
         {
@@ -35,13 +35,13 @@
     },
     "autoload": {
         "psr-4": {
-            "Modularavel\\Starter\\": "src/",
-            "Modularavel\\Starter\\Database\\Factories\\": "database/factories/"
+            "Modularavel\\Modularavel\\": "src/",
+            "Modularavel\\Modularavel\\Database\\Factories\\": "database/factories/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Modularavel\\Starter\\Tests\\": "tests/",
+            "Modularavel\\Modularavel\\Tests\\": "tests/",
             "Workbench\\App\\": "workbench/app/",
             "Workbench\\Database\\Factories\\": "workbench/database/factories/",
             "Workbench\\Database\\Seeders\\": "workbench/database/seeders/"
@@ -99,15 +99,15 @@
     "extra": {
         "laravel": {
             "providers": [
-                "Modularavel\\Starter\\ModularavelServiceProvider"
+                "Modularavel\\Modularavel\\ModularavelServiceProvider"
             ],
             "aliases": {
-                "Modularavel": "Modularavel\\Starter\\Facades\\Modularavel"
+                "Modularavel": "Modularavel\\Modularavel\\Facades\\Modularavel"
             }
         },
         "testbench": {
             "aliases": {
-                "Modularavel": "Modularavel\\Starter\\Facades\\Modularavel"
+                "Modularavel": "Modularavel\\Modularavel\\Facades\\Modularavel"
             },
             "config": {
                 "database.default": "sqlite",
@@ -143,7 +143,7 @@
                 "laravel/laravel"
             ],
             "providers": [
-                "Modularavel\\Starter\\ModularavelServiceProvider"
+                "Modularavel\\Modularavel\\ModularavelServiceProvider"
             ]
         }
     },
@@ -156,8 +156,8 @@
         }
     ],
     "support": {
-        "issues": "https://github.com/modularavel/starter/issues",
-        "source": "https://github.com/modularavel/starter"
+        "issues": "https://github.com/modularavel/modularavel/issues",
+        "source": "https://github.com/modularavel/modularavel"
     },
     "funding": [
         {

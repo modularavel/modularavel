@@ -1,16 +1,16 @@
 <?php
 
-namespace Modularavel\Starter\Facades;
+namespace Modularavel\Modularavel\Facades;
 
 use Illuminate\Support\Facades\Facade;
 
 /**
- * @see \Modularavel\Starter\Modularavel
+ * @see \Modularavel\Modularavel\Modularavel
  */
 class Modularavel extends Facade
 {
     protected static function getFacadeAccessor(): string
     {
-        return \Modularavel\Starter\Modularavel::class;
+        return \Modularavel\Modularavel\Modularavel::class;
     }
 }
