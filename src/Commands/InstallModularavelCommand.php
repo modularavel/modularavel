@@ -138,7 +138,7 @@ class InstallModularavelCommand extends Command
             $this->phpBinary().' artisan optimize:clear',
         ]);
 
-        $this->warn('Modularavel installation complete!');
+        $this->output->writeln('<fg=green-bright>Modularavel installation complete.</>');
 
         return self::SUCCESS;
     }
