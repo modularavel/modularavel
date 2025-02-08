@@ -13,7 +13,7 @@ class TestCase extends Orchestra
         parent::setUp();
 
         Factory::guessFactoryNamesUsing(
-            fn (string $modelName) => 'Modularavel\\Modularavel\\Database\\Factories\\'.class_basename($modelName).'Factory'
+            fn (string $modelName) => 'Modularavel\\Starter\\Database\\Factories\\'.class_basename($modelName).'Factory'
         );
     }
 

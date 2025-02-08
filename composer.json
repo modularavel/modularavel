@@ -35,13 +35,13 @@
     },
     "autoload": {
         "psr-4": {
-            "Modularavel\\Modularavel\\": "src/",
-            "Modularavel\\Modularavel\\Database\\Factories\\": "database/factories/"
+            "Modularavel\\Starter\\": "src/",
+            "Modularavel\\Starter\\Database\\Factories\\": "database/factories/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Modularavel\\Modularavel\\Tests\\": "tests/",
+            "Modularavel\\Starter\\Tests\\": "tests/",
             "Workbench\\App\\": "workbench/app/",
             "Workbench\\Database\\Factories\\": "workbench/database/factories/",
             "Workbench\\Database\\Seeders\\": "workbench/database/seeders/"
@@ -99,15 +99,15 @@
     "extra": {
         "laravel": {
             "providers": [
-                "Modularavel\\Modularavel\\ModularavelServiceProvider"
+                "Modularavel\\Starter\\ModularavelServiceProvider"
             ],
             "aliases": {
-                "Modularavel": "Modularavel\\Modularavel\\Facades\\Modularavel"
+                "Modularavel": "Modularavel\\Starter\\Facades\\Modularavel"
             }
         },
         "testbench": {
             "aliases": {
-                "Modularavel": "Modularavel\\Modularavel\\Facades\\Modularavel"
+                "Modularavel": "Modularavel\\Starter\\Facades\\Modularavel"
             },
             "config": {
                 "database.default": "sqlite",
@@ -143,7 +143,7 @@
                 "laravel/laravel"
             ],
             "providers": [
-                "Modularavel\\Modularavel\\ModularavelServiceProvider"
+                "Modularavel\\Starter\\ModularavelServiceProvider"
             ]
         }
     },

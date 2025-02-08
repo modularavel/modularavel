@@ -3,7 +3,7 @@
 use Modularavel\Modularavel\Commands\InstallModularavelCommand;
 use Symfony\Component\Console\Command\Command;
 
-test('run install modularavel command with livewire stack', function ()   {
+test('run install modularavel command with livewire stack', function () {
     $this->artisan(InstallModularavelCommand::class, [
         'stack' => 'livewire',
     ])->assertExitCode(Command::SUCCESS);
@@ -27,7 +27,7 @@ test('run install modularavel command with livewire stack and teams option enabl
     $this->artisan(InstallModularavelCommand::class, [
         'stack' => 'livewire',
         '--teams' => true,
-   ])->assertExitCode(Command::SUCCESS);
+    ])->assertExitCode(Command::SUCCESS);
 });
 
 test('run install modularavel command with livewire stack and teams option disabled', function () {

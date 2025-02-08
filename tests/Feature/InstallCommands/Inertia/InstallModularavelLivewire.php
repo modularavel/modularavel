@@ -3,7 +3,7 @@
 use Modularavel\Modularavel\Commands\InstallModularavelCommand;
 use Symfony\Component\Console\Command\Command;
 
-test('run install modularavel command with inertia stack', function ()   {
+test('run install modularavel command with inertia stack', function () {
     $this->artisan(InstallModularavelCommand::class, [
         'stack' => 'inertia',
     ])->assertExitCode(Command::SUCCESS);
@@ -27,7 +27,7 @@ test('run install modularavel command with inertia stack and teams option enable
     $this->artisan(InstallModularavelCommand::class, [
         'stack' => 'inertia',
         '--teams' => true,
-   ])->assertExitCode(Command::SUCCESS);
+    ])->assertExitCode(Command::SUCCESS);
 });
 
 test('run install modularavel command with inertia stack and teams option disabled', function () {
