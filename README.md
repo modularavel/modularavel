@@ -6,7 +6,7 @@
 [![GitHub Code Style Action Status](https://img.shields.io/github/actions/workflow/status/modularavel/modularavel/fix-php-code-style-issues.yml?branch=main&label=code%20style&style=flat-square)](https://github.com/modularavel/modularavel/actions?query=workflow%3A"Fix+PHP+code+style+issues"+branch%3Amain)
 [![Total Downloads](https://img.shields.io/packagist/dt/modularavel/modularavel.svg?style=flat-square)](https://packagist.org/packages/modularavel/modularavel)
 
-A single command, and you have a professional base in Laravel in a modular way and using the Css Framework of your choice, such as Bootstrap, Tailwind, Bulma, we even have some modules ready for use in production.
+✨ A single command, and you have a professional base in Laravel in a modular way and using the Css Framework of your choice, such as Bootstrap, Tailwind, Bulma, we even have some modules ready for use in production soo 🤜.
 
 ## Installation
 
