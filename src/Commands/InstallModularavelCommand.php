@@ -13,6 +13,7 @@ use RuntimeException;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Process\PhpExecutableFinder;
 use Symfony\Component\Process\Process;
+
 use function Illuminate\Support\php_binary;
 
 class InstallModularavelCommand extends Command
