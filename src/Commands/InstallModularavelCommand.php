@@ -13,7 +13,6 @@ use RuntimeException;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Process\PhpExecutableFinder;
 use Symfony\Component\Process\Process;
-
 use function Illuminate\Support\php_binary;
 
 class InstallModularavelCommand extends Command
@@ -138,7 +137,7 @@ class InstallModularavelCommand extends Command
             $this->phpBinary().' artisan optimize:clear',
         ]);
 
-        $this->output->writeln('<fg=green-bright>Modularavel installation complete.</>');
+        $this->output->writeln('<fg=bright-green>Modularavel installation complete.</>');
 
         return self::SUCCESS;
     }
