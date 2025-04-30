@@ -176,11 +176,11 @@ class InstallModularavelCommand extends Command
         $this->warn("Creating: $folder folder on project root...");
 
         // Check if the Modules folder name is valid
-      /*  if (! preg_match('/^[A-Za-z]+$/', $folder)) {
-            $this->error('Invalid folder name. Only letters are allowed. Please try again!');
+        /*  if (! preg_match('/^[A-Za-z]+$/', $folder)) {
+              $this->error('Invalid folder name. Only letters are allowed. Please try again!');
 
-            return $this->askForModulesFolderName();
-        }*/
+              return $this->askForModulesFolderName();
+          }*/
 
         // $folder = Str::ucfirst($folder);
 
@@ -511,10 +511,8 @@ class InstallModularavelCommand extends Command
                 base_path('vite-module-loader.ts'),
             ]);
 
-
-             $files->deleteDirectory(resource_path('css'));
-             $files->deleteDirectory(resource_path('js'));
-
+            $files->deleteDirectory(resource_path('css'));
+            $files->deleteDirectory(resource_path('js'));
 
             $files->ensureDirectoryExists(base_path('stubs'), 0755, true);
 
