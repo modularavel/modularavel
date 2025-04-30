@@ -169,20 +169,23 @@ class InstallModularavelCommand extends Command
 
     protected function askForModulesFolderName(): string
     {
+        $folder = 'Modules';
+
         // Ask for the Modules folder name and create it if it doesn't exist
-        $answer = $this->ask('Modules folder:', 'Modules');
+        // $answer = $this->ask('Modules folder:', 'Modules');
+        $this->warn("Creating: $folder folder on project root...");
 
         // Check if the Modules folder name is valid
-        if (! preg_match('/^[A-Za-z]+$/', $answer)) {
+      /*  if (! preg_match('/^[A-Za-z]+$/', $folder)) {
             $this->error('Invalid folder name. Only letters are allowed. Please try again!');
 
             return $this->askForModulesFolderName();
-        }
+        }*/
 
-        $answer = Str::ucfirst($answer);
+        // $folder = Str::ucfirst($folder);
 
         // Check if another package already uses the Modules folder name
-        (new Filesystem)->ensureDirectoryExists(base_path($answer), 0755, true);
+        (new Filesystem)->ensureDirectoryExists(base_path($folder), 0755, true);
 
         // Add the Modules folder to the composer.json file
         $this->modifyComposerJson([
@@ -196,13 +199,13 @@ class InstallModularavelCommand extends Command
             'extra' => [
                 'merge-plugin' => [
                     'include' => [
-                        "$answer/*/composer.json",
+                        "$folder/*/composer.json",
                     ],
                 ],
             ],
         ]);
 
-        return $answer;
+        return $folder;
     }
 
     /**
@@ -298,6 +301,7 @@ class InstallModularavelCommand extends Command
         $packages = [
             'livewire/livewire',
             'livewire/volt',
+            'livewire/flux',
             'nwidart/laravel-modules',
             'mhmiton/laravel-modules-livewire',
             'joshbrw/laravel-module-installer',
@@ -305,9 +309,9 @@ class InstallModularavelCommand extends Command
 
         foreach ($packages as $package) {
             if (! $this->hasComposerPackage($package)) {
-                $this->info("Installing $package as a development dependency...");
+                $this->info("Installing package: $package ...");
 
-                $this->requireComposerPackages([$package], true);
+                $this->requireComposerPackages([$package], false);
             }
         }
     }
@@ -321,20 +325,20 @@ class InstallModularavelCommand extends Command
         }
 
         if ($this->hasComposerPackage('predis/predis')) {
-            $this->output->writeln('<fg=green>Predis already installed.</>');
+            $this->output->writeln('<fg=green>Predis already installed! Skipping...</>');
 
             return;
         }
 
-        $this->info('Installing predis/predis as a development dependency...');
+        $this->info('Installing predis/predis dependency...');
 
         $success = $this->requireComposerPackages([
             'predis/predis',
-        ], true);
+        ], false);
 
         if ($success) {
 
-            $this->info('Predis installed successfully.');
+            $this->info('Predis installed successfully!');
 
             // Replace a cache driver with an array driver
             $this->replaceInFile(
@@ -346,12 +350,12 @@ class InstallModularavelCommand extends Command
                 [
                     'REDIS_CLIENT=predis',
                     'CACHE_STORE=redis',
-                    'CACHE_PREFIX=cache',
+                    'CACHE_PREFIX="${APP_NAME}_cache"',
                 ],
                 base_path('.env')
             );
         } else {
-            $this->error('Predis installation failed.');
+            $this->error('Predis installation failed :(');
         }
     }
 
@@ -425,16 +429,16 @@ class InstallModularavelCommand extends Command
             'php artisan vendor:publish --provider="Barryvdh\\Debugbar\\ServiceProvider"',
         ]);
 
-        $this->info('Debugbar installed successfully.');
+        $this->info('Debugbar installed successfully!');
 
         return 0;
     }
 
     protected function installRequiredNodePackages(): void
     {
-        $choice = $this->choice('Which package manager do you want to use?', ['NPM', 'Yarn', 'Pnpm'], 0);
+        $choice = $this->choice('Which package manager do you want to use?', ['npm', 'yarn', 'pnpm'], 0);
 
-        $installPackages = [
+        /*$installPackages = [
             'postcss' => '^8.4.31',
             'tailwindcss' => '^3.2.1',
             'bulma' => '^1.0.3',
@@ -442,16 +446,16 @@ class InstallModularavelCommand extends Command
 
         $this->updateNodePackages(function ($packages) use ($installPackages) {
             return $installPackages + $packages;
-        });
+        });*/
 
-        if ($choice === 'NPM') {
+        if ($choice === 'npm') {
             $this->installNodePackages();
-        } elseif ($choice === 'Yarn') {
+        } elseif ($choice === 'yarn') {
             $this->installYarnPackages();
-        } elseif ($choice === 'Pnpm') {
+        } elseif ($choice === 'pnpm') {
             $this->installPnpmPackages();
         } else {
-            $this->error('Please run "npm run dev" or "yarn run dev" to compile your assets.');
+            $this->error('Please run "npm run dev" or "yarn run dev" to compile your assets...');
 
             $this->installRequiredNodePackages();
         }
@@ -459,7 +463,7 @@ class InstallModularavelCommand extends Command
 
     protected function installYarnPackages(): void
     {
-        $this->info('Installing node dependencies with Yarn...');
+        $this->info('Installing node dependencies with yarn...');
 
         $this->runCommands([
             'yarn',
@@ -469,7 +473,7 @@ class InstallModularavelCommand extends Command
 
     protected function installPnpmPackages(): void
     {
-        $this->info('Installing node dependencies with PNPM...');
+        $this->info('Installing node dependencies with pnpm...');
 
         $this->runCommands([
             'pnpm install',
@@ -479,7 +483,7 @@ class InstallModularavelCommand extends Command
 
     protected function installNodePackages(): void
     {
-        $this->info('Installing node dependencies with NPM...');
+        $this->info('Installing node dependencies with npm...');
 
         $this->runCommands([
             'npm install --legacy-peer-deps',
@@ -490,18 +494,35 @@ class InstallModularavelCommand extends Command
     protected function copyStubsToBasePath(): void
     {
         tap(new Filesystem, function (Filesystem|HigherOrderTapProxy $files) {
-            $files->ensureDirectoryExists(base_path('stubs'), 0755, true);
-            $files->copyDirectory(__DIR__.'/../../stubs', base_path('stubs'));
-
             $files->delete([
                 base_path('vite.config.js'),
+                base_path('vite.config.ts'),
                 base_path('tailwind.config.js'),
+                base_path('tailwind.config.cjs'),
+                base_path('tailwind.config.mjs'),
+                base_path('tailwind.config.ts'),
+                base_path('postcss.config.js'),
+                base_path('postcss.config.cjs'),
+                base_path('postcss.config.mjs'),
+                base_path('postcss.config.ts'),
                 base_path('vite-module-loader.js'),
+                base_path('vite-module-loader.cjs'),
+                base_path('vite-module-loader.mjs'),
+                base_path('vite-module-loader.ts'),
             ]);
 
+
+             $files->deleteDirectory(resource_path('css'));
+             $files->deleteDirectory(resource_path('js'));
+
+
+            $files->ensureDirectoryExists(base_path('stubs'), 0755, true);
+
+            $files->copyDirectory(__DIR__.'/../../stubs', base_path());
+
             // $files->deleteDirectory(resource_path('views'));
-            $files->copyDirectory(base_path('stubs/app-views'), base_path());
-            $files->copyDirectory(base_path('stubs/root'), base_path());
+            // $files->copyDirectory(base_path('stubs/app-views'), base_path());
+            // $files->copyDirectory(base_path('stubs/root'), base_path());
         });
     }
 }

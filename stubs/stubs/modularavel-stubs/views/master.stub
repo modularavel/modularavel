@@ -1,0 +1,8 @@
+@extends('components.layouts.auth.card')
+
+@assets
+    @vite([
+        'Modules/$STUDLY_NAME$/resources/assets/sass/app.scss',
+        'Modules/$STUDLY_NAME$/resources/assets/js/app.js'
+    ])
+@endassets
