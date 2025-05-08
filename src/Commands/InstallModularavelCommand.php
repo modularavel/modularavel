@@ -303,7 +303,7 @@ class InstallModularavelCommand extends Command
             'livewire/volt',
             'livewire/flux',
             'nwidart/laravel-modules',
-            'mhmiton/laravel-modules-livewire'
+            'mhmiton/laravel-modules-livewire',
         ];
 
         foreach ($packages as $package) {
