@@ -117,7 +117,7 @@ class InstallModularavelCommand extends Command
 
         $this->runCommands([
             'php artisan volt:install',
-            'php artisan livewire:publish --config --force',
+            'php artisan livewire:publish --config',
             /*'php artisan vendor:publish --provider="Nwidart\\Modules\\LaravelModulesServiceProvider"',
             'php artisan vendor:publish --tag=modules-livewire-config',*/
         ]);
@@ -303,8 +303,7 @@ class InstallModularavelCommand extends Command
             'livewire/volt',
             'livewire/flux',
             'nwidart/laravel-modules',
-            'mhmiton/laravel-modules-livewire',
-            'joshbrw/laravel-module-installer',
+            'mhmiton/laravel-modules-livewire'
         ];
 
         foreach ($packages as $package) {
